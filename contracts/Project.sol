@@ -24,6 +24,22 @@ library SafeMath {
 	}
 }
 
+//项目列表
+contract ProjectList {
+	using SafeMath for uint;
+	address[] public projects;
+
+	function createProject(string _description, uint _minInvest, uint _maxInvest, uint _goal) public {
+		address newProject = new Project(_description, _minInvest, _maxInvest, _goal, msg.sender);
+		projects.push(newProject);
+	}
+
+	function getProjects() public view returns(address[]) {
+		return projects;
+	}
+}
+
+//项目合约
 contract Project {
 
 	using SafeMath for uint;
@@ -55,12 +71,13 @@ contract Project {
 	}
 
 	//构造函数，初始化，传入合约的基本属性
-	constructor(string _description, uint _minInvest, uint _maxInvest, uint _goal) public {
+	constructor(string _description, uint _minInvest, uint _maxInvest, uint _goal, address _owner) public {
 		owner = msg.sender;
 		description = _description;
 		minInvest = _minInvest;
 		maxInvest = _maxInvest;
 		goal = _goal;
+		owner = _owner;
 	}
 
 	//参与项目的投资接口
