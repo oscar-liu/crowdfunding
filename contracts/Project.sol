@@ -1,6 +1,32 @@
 pragma solidity ^0.4.23;
 
+libray SafeMath {
+	function mul(uint a, uint b) internal pure returns (uint) {
+		uint c = a * b;
+		assert( a == 0 || c / a == b);
+		return c;
+	}
+
+	function div(uint a , uint b) internal pure returns (uint) {
+		uint c = a / b;
+		return c;
+	}
+
+	function sub(uint a, uint b) internal pure returns (uint) {
+		assert (b <= a);
+		return a - b;
+	}
+
+	function add(uint a , uint b) internal pure return (uint) {
+		uint c = a + b;
+		assert(c >= a);
+		return c;
+	}
+}
+
 contract Project {
+
+	using SafeMath for uint;
 
 	//自定义结构
 	struct Payment {
@@ -19,13 +45,8 @@ contract Project {
 	address[] public investors;    //投资人列表
 	Payment[] public payments;    //资金支出列表
 
-	/**
-	 * 构造函数，初始化，传入合约的基本属性
-	 * @param string _description 项目介绍
-	 * @param uint _minInvest 项目最小投资金额
-	 * @param uint _maxInvest 项目最大投资金额
-	 * @param uint _goal 项目融资上限
-	 */
+
+	//构造函数，初始化，传入合约的基本属性
 	constructor(string _description, uint _minInvest, uint _maxInvest, uint _goal) public {
 		owner = msg.sender;
 		description = _description;
@@ -34,27 +55,21 @@ contract Project {
 		goal = _goal;
 	}
 
-	/**
-	 * 参与项目的投资接口
-	 * 投资人在调用接口时需要发送满足条件的资金（payable）
-	 * @return {[type]} [description]
-	 */
+	//参与项目的投资接口
 	function contribute() public payable {
 		require(msg.value >= minInvest);    //发送资金大于等于最小投资金额
 		require(msg.value <= maxInvest);    //发送资金小于等于最大投资金额
-		require(address(this).balance <= goal);    //本合约资金总额小于等于融资上限
+
+		uint newBalance = 0;
+		newBalance = address(this).balance.add(msg.value);
+		require(newBalance <= goal); //本合约资金总额小于等于融资上限
 
 		investors.push(msg.sender);    //加入投资人列表
 	}
 
-	/**
-	 * 发起资金支出请求，要求传入资金明细
-	 * @param  string  _description  用途说明
-	 * @param  uint    _amount       金额
-	 * @param  address _receiver     转账地址
-	 * @return          [description]
-	 */
+	//发起资金支出请求，要求传入资金明细
 	function createPayment(string _description, uint _amount , address _receiver) public {
+		require(msg.sender == owner); //仅项目发起人可以拥有权限
 		Payment memory newPayment = Payment({
 			description: _description,
 			amount: _amount,
@@ -65,11 +80,7 @@ contract Project {
 		payments.push(newPayment);   //加入到资金支出列表
 	}
 
-	/**
-	 * 资金支出投票
-	 * @param  {uint} index         支出列表数组中的索引值
-	 * @return {[type]}      [description]
-	 */
+	//资金支出投票
 	function approvePayment(uint index) public {
 		Payment storage payment = payments[index];
 
@@ -96,12 +107,10 @@ contract Project {
 		payment.voters.push(msg.sender);    //记录投票人信息到投票人列表
 	}
 
-	/**
-	 * 资金支出
-	 * @param  {uint} index         资金支出列表索引 
-	 * @return {[type]}      [description]
-	 */
+	//资金支出
 	function doPayment(uint index) public {
+		require(msg.sender == owner); //仅项目发起人可以拥有权限
+
 		Payment storage payment = payments[index];
 
 		require(!payment.completed);
