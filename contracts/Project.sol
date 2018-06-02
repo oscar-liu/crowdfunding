@@ -1,6 +1,6 @@
 pragma solidity ^0.4.23;
 
-libray SafeMath {
+library SafeMath {
 	function mul(uint a, uint b) internal pure returns (uint) {
 		uint c = a * b;
 		assert( a == 0 || c / a == b);
@@ -17,7 +17,7 @@ libray SafeMath {
 		return a - b;
 	}
 
-	function add(uint a , uint b) internal pure return (uint) {
+	function add(uint a , uint b) internal pure returns (uint) {
 		uint c = a + b;
 		assert(c >= a);
 		return c;
@@ -46,6 +46,11 @@ contract Project {
 	Payment[] public payments;    //资金支出列表
 
 
+	modifier ownerOnly() {
+		require(msg.sender == owner);
+		_;
+	}
+
 	//构造函数，初始化，传入合约的基本属性
 	constructor(string _description, uint _minInvest, uint _maxInvest, uint _goal) public {
 		owner = msg.sender;
@@ -68,8 +73,7 @@ contract Project {
 	}
 
 	//发起资金支出请求，要求传入资金明细
-	function createPayment(string _description, uint _amount , address _receiver) public {
-		require(msg.sender == owner); //仅项目发起人可以拥有权限
+	function createPayment(string _description, uint _amount , address _receiver) ownerOnly public {
 		Payment memory newPayment = Payment({
 			description: _description,
 			amount: _amount,
@@ -108,12 +112,12 @@ contract Project {
 	}
 
 	//资金支出
-	function doPayment(uint index) public {
-		require(msg.sender == owner); //仅项目发起人可以拥有权限
+	function doPayment(uint index) ownerOnly public {
 
 		Payment storage payment = payments[index];
 
 		require(!payment.completed);
+		require(address(this).balance >= payment.amount);  //检查钱包是否有足够的余额
 		require(payment.voters.length > (investors.length / 2));    //赞成票数超过投资人数量的50%
 
 		payment.receiver.transfer(payment.amount);    //转账
