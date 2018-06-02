@@ -34,7 +34,9 @@ contract Project {
 		uint amount;
 		address receiver;
 		bool completed;
-		address[] voters;
+		// address[] voters;
+		mapping(address => bool) voters;
+		uint voterCount;
 	}
 
 	address public owner;      //项目所有者
@@ -42,7 +44,8 @@ contract Project {
 	uint public minInvest;    //最小投资金额
 	uint public maxInvest;    //最大投资金额
 	uint public goal;    //融资上限
-	address[] public investors;    //投资人列表
+	uint public investorCount;
+	mapping(address => uint) public investors;    //投资人列表
 	Payment[] public payments;    //资金支出列表
 
 
@@ -69,7 +72,9 @@ contract Project {
 		newBalance = address(this).balance.add(msg.value);
 		require(newBalance <= goal); //本合约资金总额小于等于融资上限
 
-		investors.push(msg.sender);    //加入投资人列表
+		//加入投资人列表
+		investors[msg.sender] = msg.value;
+		investorCount += 1;
 	}
 
 	//发起资金支出请求，要求传入资金明细
@@ -79,37 +84,25 @@ contract Project {
 			amount: _amount,
 			receiver: _receiver,
 			completed: false,
-			voters: new address[](0)
+			voterCount : 0
 		});
 		payments.push(newPayment);   //加入到资金支出列表
+
 	}
 
 	//资金支出投票
 	function approvePayment(uint index) public {
 		Payment storage payment = payments[index];
 
-		//
-		bool isInvestor = false;
-		for(uint i = 0; i < investors.length; i++){
-			isInvestor = investors[i] == msg.sender;
-			if(isInvestor) {
-				break;
-			}
-		}
-		require(isInvestor);
+		require(investors[msg.sender] > 0);
+		require(!payment.voters[msg.sender]);
 
-		//
-		bool hasVoted = false;
-		for(uint j=0; j<payment.voters.length; j++) {
-			hasVoted = payment.voters[i] == msg.sender;
-			if(hasVoted) {
-				break;
-			}
-		}
-		require(hasVoted);
-
-		payment.voters.push(msg.sender);    //记录投票人信息到投票人列表
+		//记录投票人信息到投票人列表
+		payment.voters[msg.sender] = true;
+		payment.voterCount += 1;
+		
 	}
+
 
 	//资金支出
 	function doPayment(uint index) ownerOnly public {
@@ -118,7 +111,8 @@ contract Project {
 
 		require(!payment.completed);
 		require(address(this).balance >= payment.amount);  //检查钱包是否有足够的余额
-		require(payment.voters.length > (investors.length / 2));    //赞成票数超过投资人数量的50%
+		//赞成票数超过投资人数量的50%
+		require(payment.voterCount > (investorCount / 2));
 
 		payment.receiver.transfer(payment.amount);    //转账
 		payment.completed = true;
