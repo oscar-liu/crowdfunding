@@ -1,0 +1,35 @@
+{
+  "name": "crowdfunding",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "compile": "node scripts/compile.js",
+    "test": "mocha tests/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oscar-liu/crowdfunding.git"
+  },
+  "keywords": [
+    "以太坊众筹项目"
+  ],
+  "author": "oscar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/oscar-liu/crowdfunding/issues"
+  },
+  "homepage": "https://github.com/oscar-liu/crowdfunding#readme",
+  "devDependencies": {
+    "bignumber": "^1.1.0",
+    "fs-extra": "^6.0.1",
+    "solc": "^0.4.24"
+  },
+  "dependencies": {
+    "assert": "^1.4.1",
+    "web3": "^1.0.0-beta.34"
+  }
+}
