@@ -8,6 +8,8 @@
   },
   "scripts": {
     "compile": "node scripts/compile.js",
+    "pretest": "npm run compile",
+    "deploy": "node scripts/deploy.js",
     "test": "mocha tests/"
   },
   "repository": {
@@ -30,6 +32,7 @@
   },
   "dependencies": {
     "assert": "^1.4.1",
+    "truffle-hdwallet-provider": "0.0.3",
     "web3": "^1.0.0-beta.34"
   }
 }
